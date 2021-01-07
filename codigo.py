@@ -22,15 +22,15 @@ def formatar_string(palavra):
 
 
 def criar_grafico(dados, diretorio):
+    criar_diretorio(os.path.join(diretorio))
     criar_grafico_barra(dados, diretorio)
     criar_grafico_pizza(dados, diretorio)
 
 def criar_grafico_barra(dados, diretorio):   
 
-    criar_diretorio(os.path.join(diretorio, 'barra'))
+    
 
     dados.plot(kind = "barh")
-    plt.legend()
     
     plt.xlabel('Pessoas')
     plt.ylabel('Numero')
@@ -44,15 +44,13 @@ def criar_grafico_barra(dados, diretorio):
     titulo_grafico = formatar_string(dados.name)
     plt.title(titulo_grafico)
     
-    caminho_arquivo_grafico = f"{os.path.join(diretorio,'barra', titulo_grafico)}.jpg"
+    caminho_arquivo_grafico = f"{os.path.join(diretorio, f'{titulo_grafico} - barra')}.jpg"
     remover_arquivo(caminho_arquivo_grafico)
     plt.savefig(caminho_arquivo_grafico)
     plt.close()
 
 def criar_grafico_pizza(dados, diretorio):
     
-    criar_diretorio(os.path.join(diretorio, 'pizza'))
-
     plt.pie(dados.values, autopct='%1.0f%%')
     plt.legend(dados.index)
     plt.xlabel('')
@@ -61,7 +59,9 @@ def criar_grafico_pizza(dados, diretorio):
     titulo_grafico = formatar_string(dados.name)
     plt.title(titulo_grafico)
     
-    caminho_arquivo_grafico = f"{os.path.join(diretorio,'pizza', titulo_grafico)}.jpg"
+    
+
+    caminho_arquivo_grafico = f"{os.path.join(diretorio, f'{titulo_grafico} - pizza')}.jpg"
     remover_arquivo(caminho_arquivo_grafico)
     plt.savefig(caminho_arquivo_grafico)
     plt.close()
@@ -71,7 +71,7 @@ def criar_texto(dados, diretorio):
    
     
     titulo_arquivo = formatar_string(dados.name)
-    caminho_arquivo_texto = f"{os.path.join(diretorio_textos, titulo_arquivo)}.txt"
+    caminho_arquivo_texto = f"{os.path.join(diretorio, titulo_arquivo)}.txt"
     remover_arquivo(caminho_arquivo_texto)
     
     arquivo_de_texto = open(caminho_arquivo_texto, 'a')
@@ -80,11 +80,9 @@ def criar_texto(dados, diretorio):
 
 
 #Variaveis de diretorio
-diretorio_inicial = os.getcwd()
+diretorio_inicial = os.path.join(os.getcwd(), 'dados')
 caminho_arquivo_de_dados = os.path.join(diretorio_inicial, 'respostas.xlsx')
 
-diretorio_textos = os.path.join(diretorio_inicial, 'dados', 'textos')
-diretorio_graficos = os.path.join(diretorio_inicial, 'dados', 'imagens')
 
 
 
@@ -102,24 +100,23 @@ lista_vencedores = []
 #For que percorre as colunas
 for i in range(len(df.columns)):
     categoria = f'{df.columns[i]}'
-
     #funçao que conta a frequencia de cada valor em uma tabela
     #estou passando como parametro a tabela com apenas uma coluna
     #formatar celula para remover os espaços
       
     categoria_ranqueada = pd.value_counts(df[categoria])
-    criar_grafico(categoria_ranqueada, diretorio_graficos)
-    criar_texto(categoria_ranqueada, diretorio_textos)
+    criar_grafico(categoria_ranqueada, os.path.join(diretorio_inicial, categoria))
+    criar_texto(categoria_ranqueada, os.path.join(diretorio_inicial, categoria))
 
 
     #for para se criar a contagem de vencedores
-    for i in range(len(categoria_ranqueada)):
-        numeroDeVotosDaVez = categoria_ranqueada[i]
+    for j in range(len(categoria_ranqueada)):
+        numeroDeVotosDaVez = categoria_ranqueada[j]
         #caso essa pessoa tenha o numero de votos maximo
         if(numeroDeVotosDaVez == categoria_ranqueada.max()):
-            #dou o nome 'vencedor'ao indice do dicionario por que por algum motivo. os nomes 
+            #dou o nome do 'vencedor' ao indice do dicionario por que por algum motivo os nomes 
             #das pessoas estao sendo colocadas como indices
-            vencedor = categoria_ranqueada.index[i]
+            vencedor = categoria_ranqueada.index[j]
         
             #Adciona a categoria, o vencedor, e o numero de votos em forma de lista
             lista_vencedores += [[categoria , vencedor, numeroDeVotosDaVez]] 
@@ -129,8 +126,16 @@ for i in range(len(df.columns)):
 
 #cria o dataframe com os dados coletados no for acima
 lista_vencedores_dataframe = pd.DataFrame(lista_vencedores, columns = ['Categoria', 'Vencedor', 'Votos'])
-lista_vencedores_ranqueada = lista_vencedores_dataframe.value_counts('Vencedor')
-lista_vencedores_ranqueada.name = "lista_de_vencedores"
 
-criar_grafico(lista_vencedores_ranqueada, diretorio_graficos)
-criar_texto(lista_vencedores_ranqueada, diretorio_textos)
+lista_vencedores_dataframe.name = "vencedores"
+
+
+#criar_grafico(lista_vencedores_dataframe, diretorio_graficos)
+criar_texto(lista_vencedores_dataframe, os.path.join(diretorio_inicial, 'resumo'))
+
+
+lista_vencedores_ranqueada = lista_vencedores_dataframe.value_counts('Vencedor')
+lista_vencedores_ranqueada.name = "ranquin_de_vencedores"
+
+criar_grafico(lista_vencedores_ranqueada, os.path.join(diretorio_inicial, 'resumo'))
+criar_texto(lista_vencedores_ranqueada, os.path.join(diretorio_inicial, 'resumo'))
